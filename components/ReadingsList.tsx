@@ -39,7 +39,8 @@ const ReadingsList: React.FC<ReadingsListProps> = ({ readings, onDeleteReading }
   if (readings.length === 0) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md mt-6">
-        <p className="text-gray-600 text-center">No hay mediciones registradas aún.</p>
+        <h2 className="text-xl font-semibold text-dark mb-4">Historial de Mediciones</h2>
+        <p className="text-gray-600 text-center py-4">No hay mediciones registradas aún.</p>
       </div>
     );
   }
@@ -47,35 +48,37 @@ const ReadingsList: React.FC<ReadingsListProps> = ({ readings, onDeleteReading }
   return (
     <div className="bg-white p-6 rounded-lg shadow-md mt-6">
       <h2 className="text-xl font-semibold text-dark mb-4">Historial de Mediciones</h2>
-      <ul className="space-y-3">
-        {readings.map((reading) => {
-          const { textClass, borderClass, label } = getGlucoseLevelStyle(reading.glucoseLevel);
-          return (
-            <li
-              key={reading.id}
-              className={`p-3 border border-l-4 ${borderClass} border-gray-200 rounded-md flex items-center justify-between hover:bg-gray-50 transition-colors`}
-              aria-label={`Medición: ${reading.glucoseLevel} mg/dL, Estado: ${label}, Fecha: ${formatDate(reading.date)} ${reading.time}`}
-            >
-              <div className="flex-grow">
-                <div className="flex items-baseline space-x-2">
-                  <p className={`text-lg font-semibold ${textClass}`}>{reading.glucoseLevel} mg/dL</p>
-                  <p className={`text-xs italic ${textClass}`}>{label}</p>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  {formatDate(reading.date)} - {reading.time}
-                </p>
-              </div>
-              <button
-                onClick={() => onDeleteReading(reading.id)}
-                className="ml-3 p-2 text-gray-500 hover:text-danger hover:bg-red-100 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-danger transition-colors"
-                aria-label={`Eliminar medición de ${reading.glucoseLevel} mg/dL del ${formatDate(reading.date)}`}
+      <div className="max-h-96 overflow-y-auto" role="region" aria-labelledby="history-heading">
+        <ul className="space-y-3">
+          {readings.map((reading) => {
+            const { textClass, borderClass, label } = getGlucoseLevelStyle(reading.glucoseLevel);
+            return (
+              <li
+                key={reading.id}
+                className={`p-3 border border-l-4 ${borderClass} border-gray-200 rounded-md flex items-center justify-between hover:bg-gray-50 transition-colors`}
+                aria-label={`Medición: ${reading.glucoseLevel} mg/dL, Estado: ${label}, Fecha: ${formatDate(reading.date)} ${reading.time}`}
               >
-                <TrashIcon />
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                <div className="flex-grow">
+                  <div className="flex items-baseline space-x-2">
+                    <p className={`text-lg font-semibold ${textClass}`}>{reading.glucoseLevel} mg/dL</p>
+                    <p className={`text-xs italic ${textClass}`}>{label}</p>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {formatDate(reading.date)} - {reading.time}
+                  </p>
+                </div>
+                <button
+                  onClick={() => onDeleteReading(reading.id)}
+                  className="ml-3 p-2 text-gray-500 hover:text-danger hover:bg-red-100 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-danger transition-colors"
+                  aria-label={`Eliminar medición de ${reading.glucoseLevel} mg/dL del ${formatDate(reading.date)}`}
+                >
+                  <TrashIcon />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </div>
   );
 };
