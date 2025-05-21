@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { GlucoseReading, NotificationMessage } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import GlucoseForm from './components/GlucoseForm';
 import ReadingsList from './components/ReadingsList';
 import NotificationBanner from './components/NotificationBanner';
+import ExportControls from './components/ExportControls';
 
 const App: React.FC = () => {
   const [readings, setReadings] = useLocalStorage<GlucoseReading[]>('glucoseReadings', []);
@@ -38,7 +38,6 @@ const App: React.FC = () => {
       
       setReadings(prevReadings => {
         const updatedReadings = [...prevReadings, newReading];
-        // Sort by timestamp descending (most recent first)
         updatedReadings.sort((a, b) => b.timestamp - a.timestamp);
         return updatedReadings;
       });
@@ -58,7 +57,6 @@ const App: React.FC = () => {
     setNotification(null);
   }, []);
 
-  // Ensure readings are always sorted for display
   const sortedReadings = React.useMemo(() => {
     return [...readings].sort((a, b) => b.timestamp - a.timestamp);
   }, [readings]);
@@ -71,9 +69,10 @@ const App: React.FC = () => {
         <p className="text-gray-600 mt-2">Mantén un control de tus niveles de glucosa de forma sencilla.</p>
       </header>
       
-      <main className="w-full max-w-lg">
+      <main className="w-full max-w-lg space-y-8">
         <GlucoseForm onAddReading={handleAddReading} />
         <ReadingsList readings={sortedReadings} onDeleteReading={handleDeleteReading} />
+        <ExportControls readings={sortedReadings} /> 
       </main>
 
       <footer className="mt-12 text-center text-sm text-gray-500">
@@ -84,4 +83,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-    
