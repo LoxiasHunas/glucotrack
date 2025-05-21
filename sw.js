@@ -1,11 +1,9 @@
-
-const CACHE_NAME = 'glucose-logger-v1.2'; // Incremented version
+const CACHE_NAME = 'glucose-logger-v1.5'; // Incremented version
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  // JS/TSX files (Note: these are source files, in a real build system, you'd cache built bundles)
-  // For esm.sh based imports, the browser resolves them, but we cache the main entry points & common deps.
+  // JS/TSX files
   '/index.tsx',
   '/App.tsx',
   '/types.ts',
@@ -13,6 +11,7 @@ const urlsToCache = [
   '/components/GlucoseForm.tsx',
   '/components/ReadingsList.tsx',
   '/components/NotificationBanner.tsx',
+  '/components/ExportControls.tsx',
   // CDNs
   'https://cdn.tailwindcss.com',
   'https://esm.sh/react@^19.1.0',
@@ -21,8 +20,7 @@ const urlsToCache = [
   'https://esm.sh/react-dom@^19.1.0/',
   'https://esm.sh/react@^19.1.0/',
 
-
-  // Placeholder icons (ensure these paths exist in a real deployment in an /icons/ folder)
+  // Placeholder icons
   '/icons/icon-72x72.png',
   '/icons/icon-96x96.png',
   '/icons/icon-128x128.png',
@@ -31,30 +29,24 @@ const urlsToCache = [
   '/icons/icon-192x192.png',
   '/icons/icon-384x384.png',
   '/icons/icon-512x512.png',
-  '/icons/apple-touch-icon-180x180.png' // Make sure this exists for apple-touch-icon link
+  '/icons/apple-touch-icon-180x180.png'
 ];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Activate new service worker as soon as it's finished installing
+  self.skipWaiting(); 
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache and caching files:', urlsToCache);
-        // Use { cache: 'reload' } to bypass HTTP cache for these initial assets
         const cachePromises = urlsToCache.map(urlToCache => {
           const request = new Request(urlToCache, { cache: 'reload' });
           return fetch(request).then(response => {
             if (!response.ok) {
-              // For CDN or external resources, a failure might not be critical for the app shell
-              // but log it for debugging.
               console.warn(`Failed to fetch ${urlToCache} for caching: ${response.status} ${response.statusText}`);
-              // Don't put bad responses in cache
-              if (response.status === 0) { // Opaque responses (like from no-cors requests)
-                // We can't check if they are ok, but for CDNs, we often have to accept them.
-                // However, esm.sh should provide CORS headers.
+               if (response.status === 0) { 
                  return cache.put(request, response);
               }
-              return Promise.resolve(); // Don't let one failed resource stop others
+              return Promise.resolve(); 
             }
             return cache.put(request, response);
           }).catch(error => {
@@ -79,58 +71,45 @@ self.addEventListener('activate', (event) => {
             console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
+          return null;
         })
       );
-    }).then(() => self.clients.claim()) // Take control of uncontrolled clients
+    }).then(() => self.clients.claim()) 
   );
 });
 
 self.addEventListener('fetch', (event) => {
-  // Let the browser handle requests for extensions (e.g. chrome-extension://)
   if (event.request.url.startsWith('chrome-extension://')) {
     return;
   }
-  // For esm.sh and other CDNs, network-first or cache-first with refresh can be good.
-  // For app assets, cache-first is generally fine.
+
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
-        // Cache hit - return response
         if (cachedResponse) {
           return cachedResponse;
         }
 
-        // Not in cache - fetch from network
         return fetch(event.request).then(
           (networkResponse) => {
-            // Check if we received a valid response
-            // Allow opaque responses for CDNs as we can't inspect them
             if (!networkResponse || (networkResponse.status !== 200 && networkResponse.type !== 'opaque') || (networkResponse.type !== 'basic' && networkResponse.type !== 'cors' && networkResponse.type !== 'opaque') ) {
                if (networkResponse && networkResponse.status === 0 && networkResponse.type === 'opaque') {
-                  // This is an opaque response, typically from a CDN with no-cors mode.
-                  // We can cache it but can't verify its content or status.
+                  // Opaque response, cache it
                } else {
-                  // Not a good response to cache, or it failed.
                   return networkResponse;
                }
             }
             
-            // Clone the response. A response is a stream and can only be consumed once.
             const responseToCache = networkResponse.clone();
-
             caches.open(CACHE_NAME)
               .then((cache) => {
                 cache.put(event.request, responseToCache);
               });
-
             return networkResponse;
           }
         ).catch((error) => {
-          console.warn('Fetch failed; returning offline fallback or letting browser handle for:', event.request.url, error);
-          // Optionally, you could return a generic offline page here if it's a navigation request:
-          // if (event.request.mode === 'navigate') {
-          //   return caches.match('/offline.html'); // You would need an offline.html cached
-          // }
+          console.warn('Fetch failed for:', event.request.url, error);
+          // Consider returning a generic offline page here for navigation requests
         });
       })
   );
