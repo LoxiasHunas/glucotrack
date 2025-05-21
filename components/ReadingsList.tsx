@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { GlucoseReading } from '../types';
 
@@ -9,12 +8,18 @@ interface ReadingsListProps {
 
 const formatDate = (dateString: string) => {
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  // Aseguramos que la fecha se interprete correctamente como local añadiendo la hora
   return new Date(dateString + 'T00:00:00').toLocaleDateString('es-ES', options);
 };
 
-const formatTime = (timeString: string) => {
-  return timeString;
-};
+// Icono de Papelera para el botón de eliminar
+const TrashIcon: React.FC = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+    <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75V4.5h8V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4.5A1.25 1.25 0 0111.25 3h-2.5A1.25 1.25 0 0110 4.5zM.75 6.75A.75.75 0 000 7.5v9c0 .828.672 1.5 1.5 1.5h17c.828 0 1.5-.672 1.5-1.5v-9a.75.75 0 00-.75-.75h-4.5V6A1.5 1.5 0 0013.5 4.5h-7A1.5 1.5 0 005 6v.75H.75zM5.75 6h8.5V4.5a.75.75 0 00-.75-.75h-7a.75.75 0 00-.75.75V6z" clipRule="evenodd" />
+    <path d="M3 9.75A.75.75 0 013.75 9h.5a.75.75 0 01.75.75v6a.75.75 0 01-.75.75h-.5a.75.75 0 01-.75-.75v-6zm5 0A.75.75 0 018.75 9h.5a.75.75 0 01.75.75v6a.75.75 0 01-.75.75h-.5a.75.75 0 01-.75-.75v-6zm5 0A.75.75 0 0113.75 9h.5a.75.75 0 01.75.75v6a.75.75 0 01-.75.75h-.5a.75.75 0 01-.75-.75v-6z" />
+  </svg>
+);
+
 
 const getGlucoseLevelStyle = (glucoseLevel: number): { textClass: string; borderClass: string; label: string } => {
   if (glucoseLevel < 55) {
@@ -48,22 +53,24 @@ const ReadingsList: React.FC<ReadingsListProps> = ({ readings, onDeleteReading }
           return (
             <li
               key={reading.id}
-              className={`p-4 border border-l-4 ${borderClass} border-gray-200 rounded-md flex flex-col sm:flex-row justify-between items-start sm:items-center hover:bg-gray-50 transition-colors`}
-              aria-label={`Medición: ${reading.glucoseLevel} mg/dL, Estado: ${label}`}
+              className={`p-3 border border-l-4 ${borderClass} border-gray-200 rounded-md flex items-center justify-between hover:bg-gray-50 transition-colors`}
+              aria-label={`Medición: ${reading.glucoseLevel} mg/dL, Estado: ${label}, Fecha: ${formatDate(reading.date)} ${reading.time}`}
             >
-              <div className="mb-2 sm:mb-0">
-                <p className={`text-lg font-semibold ${textClass}`}>{reading.glucoseLevel} mg/dL</p>
-                <p className="text-xs text-gray-500 italic">{label}</p>
+              <div className="flex-grow">
+                <div className="flex items-baseline space-x-2">
+                  <p className={`text-lg font-semibold ${textClass}`}>{reading.glucoseLevel} mg/dL</p>
+                  <p className={`text-xs italic ${textClass}`}>{label}</p>
+                </div>
                 <p className="text-sm text-gray-600 mt-1">
-                  {formatDate(reading.date)} - {formatTime(reading.time)}
+                  {formatDate(reading.date)} - {reading.time}
                 </p>
               </div>
               <button
                 onClick={() => onDeleteReading(reading.id)}
-                className="mt-2 sm:mt-0 px-3 py-1 bg-danger text-white text-xs font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-danger transition-colors"
+                className="ml-3 p-2 text-gray-500 hover:text-danger hover:bg-red-100 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-danger transition-colors"
                 aria-label={`Eliminar medición de ${reading.glucoseLevel} mg/dL del ${formatDate(reading.date)}`}
               >
-                Eliminar
+                <TrashIcon />
               </button>
             </li>
           );
