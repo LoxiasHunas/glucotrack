@@ -1,0 +1,6 @@
+{
+  "name": "Registro de Glucosa",
+  "description": "Una aplicación simple para que los pacientes diabéticos ingresen y guarden sus mediciones de glucosa a lo largo del día.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
